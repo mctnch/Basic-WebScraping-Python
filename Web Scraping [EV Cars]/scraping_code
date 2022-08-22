@@ -1,0 +1,26 @@
+from bs4 import BeautifulSoup as soup
+import requests
+import pandas as pd
+carname_list = []
+caryear_list = []
+carprice_list = []
+page = 1 
+while page <= 5 :
+    url =  f'https://www.checkraka.com/car/?fuel_type=4078&quicksearch_order=306%2CDESC-326%2CASC&page={page}'
+    req = requests.get(url)
+    s = soup(req.text , 'html.parser')
+    allcar = s.find_all('div',{"class":"content c158"})
+    for car in allcar :
+        carname = " ".join(car.find("div", {"class":"name"}).find("a").text.split()[1:-2])
+        carname_list.append(carname)
+        caryear = car.find("div", {"class":"name"}).find("a").text.split()[-1]
+        caryear_list.append(caryear)
+        carprice = int(car.find("div",{"class":"price"}).text.split()[0].replace(",",""))
+        carprice_list.append(carprice)
+    print("complete" +str(page))
+    page += 1
+table = pd.DataFrame([carname_list,caryear_list,carprice_list]).transpose()
+table.columns = ["Name","Year","Price"]
+table = table.set_index("Name")
+table.to_csv("EV cars.csv")
+print(table)
